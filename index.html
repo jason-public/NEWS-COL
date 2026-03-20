@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Vibe News - 실시간 뉴스 요약 공유기</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v3.2.1/dist/web/static/pretendard.min.css" />
+    
+    <!-- Remix Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'sans-serif'],
+                    },
+                    colors: {
+                        glassBorder: 'rgba(255, 255, 255, 0.08)',
+                        glassBg: 'rgba(15, 23, 42, 0.45)',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #020617; /* Slate 950 */
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .glass-panel {
+            background: theme('colors.glassBg');
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid theme('colors.glassBorder');
+        }
+        
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid theme('colors.glassBorder');
+            color: white;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-input:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.6); /* Indigo-500 proxy */
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        
+        /* Custom Select Triangle Override */
+        select.glass-input {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        /* Scrollbar Hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
+        }
+        
+        /* Shimmer Animation for Skeleton */
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+</head>
+<body class="relative min-h-screen text-slate-100 overflow-x-hidden selection:bg-indigo-500/30">
+
+    <!-- Ambient Glow Background -->
+    <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+        <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/15 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-600/15 blur-[150px] rounded-full"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto px-5 py-10 relative z-10 pb-32">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">Vibe News</span>
+                </h1>
+                <p class="text-sm text-slate-400 font-medium mt-1">AI-Ready 실시간 인사이트 콜렉터</p>
+            </div>
+            <button id="ttsBtn" class="w-12 h-12 rounded-full glass-panel flex flex-col items-center justify-center text-indigo-400 hover:text-indigo-300 transition-colors shadow-lg" title="헤드라인 음성으로 듣기">
+                <i class="ri-volume-up-fill text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Search Bento Box -->
+        <section class="glass-panel rounded-3xl p-6 mb-10 shadow-2xl shadow-indigo-500/5">
+            <form id="searchForm" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div class="relative flex-1">
+                    <i class="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                    <input type="text" id="searchInput" placeholder="어떤 주제를 탐색할까요?" required
+                        class="w-full glass-input rounded-2xl py-4 flex pl-12 pr-4 text-[15px] font-medium placeholder:text-slate-500">
+                </div>
+                <button type="submit" class="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white rounded-2xl px-8 py-4 font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2">
+                    <span>탐색</span>
+                    <i class="ri-arrow-right-line"></i>
+                </button>
+            </form>
+
+            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                <!-- Filter Selectors -->
+                <div class="relative flex-1">
+                    <select id="periodFilter" class="w-full glass-input rounded-xl py-3 px-4 text-sm font-medium">
+                        <option value="1" class="bg-slate-900 text-white">어제부터 현재까지 (1일)</option>
+                        <option value="3" class="bg-slate-900 text-white">최근 3일간 핵심</option>
+                        <option value="7" class="bg-slate-900 text-white">최근 7일간 흐름</option>
+                    </select>
+                    <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg"></i>
+                </div>
+                <div class="relative flex-1">
+                    <select id="countFilter" class="w-full glass-input rounded-xl py-3 px-4 text-sm font-medium">
+                        <option value="5" class="bg-slate-900 text-white">밀도있게 5개 보기</option>
+                        <option value="10" selected class="bg-slate-900 text-white">표준으로 10개 보기</option>
+                        <option value="20" class="bg-slate-900 text-white">폭넓게 20개 보기</option>
+                    </select>
+                    <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg"></i>
+                </div>
+            </div>
+
+            <!-- Quick Keywords List -->
+            <div class="mt-6 pt-5 border-t border-white/5">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="ri-flashlight-fill text-yellow-500 text-sm"></i>
+                    <p class="text-[11px] text-slate-400 font-bold tracking-widest">QUICK TRENDS</p>
+                </div>
+                <div class="flex gap-2.5 overflow-x-auto no-scrollbar -mx-2 px-2 pb-1" id="keywordsContainer">
+                    <!-- Inserted by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Display -->
+        <section>
+            <div class="flex justify-between items-center mb-5 px-1">
+                <h2 class="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                    라이브 피드
+                    <span id="resultCount" class="text-indigo-400 text-sm font-semibold px-2.5 py-0.5 rounded-lg bg-indigo-500/10 hidden">0</span>
+                </h2>
+            </div>
+            
+            <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Initial State -->
+                <div class="col-span-full py-16 text-center text-slate-500 glass-panel rounded-3xl border-dashed border-white/20 shadow-none">
+                    <i class="ri-meteor-line text-5xl mb-4 inline-block opacity-40"></i>
+                    <p class="font-medium">키워드를 입력해 세상의 흐름을 확인하세요.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Floating Action Button (Share) -->
+    <button id="shareFab" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-full shadow-[0_0_40px_rgba(99,102,241,0.5)] flex items-center justify-center text-white text-[28px] hover:scale-110 active:scale-95 transition-all z-40 hidden group border border-white/10">
+        <i class="ri-share-forward-fill group-hover:animate-pulse"></i>
+    </button>
+
+    <!-- Summary Sheet Modal -->
+    <div id="summaryModal" class="fixed inset-0 z-50 flex justify-center items-end sm:items-center pointer-events-none">
+        
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md opacity-0 transition-opacity duration-300 ease-in-out" id="modalBackdrop"></div>
+        
+        <!-- Sheet / Modal Body -->
+        <div class="glass-panel border-b-0 sm:border-b border-white/10 w-full sm:w-[500px] sm:max-w-[95vw] sm:max-h-[85vh] h-[85vh] sm:h-auto rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col transform translate-y-full sm:translate-y-12 sm:scale-95 opacity-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] z-10" id="modalContent">
+            
+            <!-- Mobile Handle -->
+            <div class="w-full flex justify-center pt-4 pb-2 bg-transparent sm:hidden shrink-0" id="modalHandle">
+                <div class="w-14 h-1.5 bg-white/20 rounded-full"></div>
+            </div>
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 sm:py-6 border-b border-white/5 flex justify-between items-center shrink-0">
+                <div>
+                    <span class="text-xs font-bold text-indigo-400 tracking-wider mb-1 block">SUMMARY REPORT</span>
+                    <h3 class="text-xl sm:text-2xl font-extrabold text-slate-100" id="modalTitle">브리핑 요약</h3>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 flex flex-col items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer touch-manipulation">
+                    <i class="ri-close-line text-2xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Scrollable Content -->
+            <div class="flex-1 overflow-y-auto px-6 py-6 space-y-4 no-scrollbar" id="modalBody" style="-webkit-overflow-scrolling: touch;">
+                <!-- Filled via JS -->
+            </div>
+            
+            <!-- Modal Action Footer -->
+            <div class="p-6 pt-5 border-t border-white/5 shrink-0 bg-slate-900/60 sm:rounded-b-3xl">
+                <button id="executeShareBtn" class="w-full bg-[#fae100] hover:bg-[#ebce00] text-[#371d1e] rounded-2xl py-4 font-extrabold text-base transition-all active:scale-[98%] flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10 cursor-pointer touch-manipulation">
+                    <i class="ri-kakao-talk-fill text-xl"></i>
+                    <span>요약된 브리핑 공유하기</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // --- 1. CONFIG & STATE ---
+        // 다중 프록시 폴백(Fallback) 구조 도입으로 안정성 극대화
+        const PROXY_LIST = [
+            { url: "https://api.allorigins.win/get?url=", type: "json" },
+            { url: "https://corsproxy.io/?", type: "text" },
+            { url: "https://api.codetabs.com/v1/proxy/?quest=", type: "text" }
+        ];
+        const QUICK_KEYWORDS = [
+            "남양주시", "남양주시 교통", "남양주시 철도", "남양주시 화물", 
+            "인공지능", "부동산 정책", "미국 증시", "금리 인하"
+        ];
+        
+        let globalArticles = [];
+        let isPlayingTTS = false;
+        let ttsUtterances = [];
+        const synth = window.speechSynthesis;
+
+        // --- 2. DOM ELEMENTS ---
+        const els = {
+            form: document.getElementById('searchForm'),
+            input: document.getElementById('searchInput'),
+            period: document.getElementById('periodFilter'),
+            count: document.getElementById('countFilter'),
+            keywords: document.getElementById('keywordsContainer'),
+            results: document.getElementById('resultsContainer'),
+            countLabel: document.getElementById('resultCount'),
+            ttsBtn: document.getElementById('ttsBtn'),
+            fab: document.getElementById('shareFab'),
+            
+            // Modal Elements
+            modal: document.getElementById('summaryModal'),
+            modalBackdrop: document.getElementById('modalBackdrop'),
+            modalContent: document.getElementById('modalContent'),
+            closeModalBtn: document.getElementById('closeModalBtn'),
+            modalTitle: document.getElementById('modalTitle'),
+            modalBody: document.getElementById('modalBody'),
+            executeShareBtn: document.getElementById('executeShareBtn')
+        };
+
+        // --- 3. INITIALIZATION ---
+        function initKeywords() {
+            els.keywords.innerHTML = QUICK_KEYWORDS.map(kw => `
+                <button type="button" class="shrink-0 glass-panel hover:bg-white/10 hover:border-white/20 border-white/5 text-slate-300 hover:text-white px-4 py-2 rounded-xl text-[13px] font-medium transition-all"
+                    onclick="doQuickSearch('${kw}')">
+                    ${kw}
+                </button>
+            `).join('');
+        }
+
+        window.doQuickSearch = (kw) => {
+            els.input.value = kw;
+            els.form.dispatchEvent(new Event('submit'));
+        };
+
+        // Utility: Date formatter 
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMins < 60) return `${diffMins || 1}분 전`;
+            if (diffHours < 24) return `${diffHours}시간 전`;
+            return `${diffDays}일 전`;
+        }
+
+        // --- 4. DATA ENGINE (RSS FETCH) ---
+        async function fetchNews(query, count, days) {
+            // 캐시 우회를 위한 타임스탬프 추가
+            const timestamp = new Date().getTime();
+            const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko&_cb=${timestamp}`;
+            
+            let xmlText = null;
+            let lastError = null;
+
+            // 다중 프록시 순차 시도 (하나가 막히면 다음 프록시로 자동 우회)
+            for (const proxy of PROXY_LIST) {
+                try {
+                    const response = await fetch(`${proxy.url}${encodeURIComponent(rssUrl)}`);
+                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                    
+                    if (proxy.type === "json") {
+                        const data = await response.json();
+                        if (data.contents) xmlText = data.contents;
+                        else throw new Error("Empty JSON contents");
+                    } else {
+                        xmlText = await response.text();
+                    }
+                    
+                    if (xmlText && xmlText.includes('<item>')) {
+                        break; // 성공 시 루프 탈출
+                    } else {
+                        throw new Error("Invalid XML structure");
+                    }
+                } catch (err) {
+                    console.warn(`[Proxy Fail] ${proxy.url} :`, err.message);
+                    lastError = err;
+                    xmlText = null;
+                }
+            }
+
+            if (!xmlText) {
+                throw new Error("모든 프록시 서버 접근에 실패했습니다.");
+            }
+            
+            // Parse XML Document
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+            
+            const items = Array.from(xmlDoc.querySelectorAll("item"));
+            const cutoff = new Date(new Date().getTime() - (days * 24 * 60 * 60 * 1000));
+            
+            let articles = items.map(item => {
+                let rawTitle = item.querySelector("title")?.textContent || "제목 없음";
+                const parts = rawTitle.split(" - ");
+                let source = item.querySelector("source")?.textContent;
+                
+                // If source not found explicitly, fallback to the suffix usually found in title
+                if(!source && parts.length > 1) {
+                    source = parts.pop();
+                }
+                const title = parts.join(" - ") || rawTitle;
+                
+                return {
+                    title: title.trim(),
+                    link: item.querySelector("link")?.textContent || "",
+                    pubDate: item.querySelector("pubDate") ? new Date(item.querySelector("pubDate").textContent) : new Date(),
+                    source: source || "Google News"
+                };
+            });
+            
+            // Filter by selected period and sort exactly by time desc
+            articles = articles.filter(a => a.pubDate >= cutoff);
+            articles.sort((a, b) => b.pubDate - a.pubDate);
+            return articles.slice(0, count);
+        }
+
+        // --- 5. RENDER FUNCTIONS ---
+        function showSkeletons(count) {
+            els.results.innerHTML = Array(count).fill(0).map(() => `
+                <div class="glass-panel border-white/5 rounded-3xl p-6 flex flex-col gap-4 shadow-sm">
+                    <div class="shimmer h-6 w-1/4 rounded-lg bg-white/5 mb-1"></div>
+                    <div class="space-y-3">
+                        <div class="shimmer h-5 w-full rounded-md bg-white/5"></div>
+                        <div class="shimmer h-5 w-5/6 rounded-md bg-white/5"></div>
+                    </div>
+                </div>
+            `).join('');
+            els.countLabel.classList.add('hidden');
+            els.fab.classList.add('hidden');
+        }
+
+        function renderResults(articles) {
+            globalArticles = articles;
+            
+            if(articles.length === 0) {
+                els.results.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-slate-400 glass-panel rounded-3xl border-dashed border-white/10">
+                        <i class="ri-search-eye-line text-5xl mb-4 opacity-30 inline-block"></i>
+                        <p class="font-medium text-lg text-slate-300">검색 결과가 없습니다.</p>
+                        <p class="text-xs text-slate-500 mt-2">다른 키워드나 기간을 선택해보세요.</p>
+                    </div>`;
+                els.countLabel.classList.add('hidden');
+                els.fab.classList.add('hidden');
+                stopTTS();
+                return;
+            }
+
+            // Update Header Counts
+            els.countLabel.textContent = `${articles.length}건`;
+            els.countLabel.classList.remove('hidden');
+            els.fab.classList.remove('hidden');
+
+            els.results.innerHTML = articles.map((a, i) => `
+                <a href="${a.link}" target="_blank" rel="noopener noreferrer" 
+                   class="group glass-panel rounded-3xl p-6 flex flex-col justify-between hover:bg-white/10 transition-all duration-300 border border-transparent hover:border-indigo-400/30 hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    <!-- Glow effect on hover -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/0 via-transparent to-purple-500/0 group-hover:from-indigo-500/5 group-hover:to-purple-500/5 transition-colors"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-indigo-300 bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-400/20">
+                                ${a.source}
+                            </span>
+                            <span class="text-[11px] font-medium text-slate-400 tracking-wide">${formatTimeAgo(a.pubDate)}</span>
+                        </div>
+                        <h3 class="text-base sm:text-[17px] font-bold leading-relaxed text-slate-100 group-hover:text-indigo-200 transition-colors line-clamp-3">
+                            ${a.title}
+                        </h3>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        // Event: Search Submit
+        els.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = els.input.value.trim();
+            if(!query) return;
+
+            const count = parseInt(els.count.value, 10);
+            const days = parseInt(els.period.value, 10);
+            
+            stopTTS();
+            showSkeletons(Math.min(count, 4)); // Show fewer skeletons nicely
+
+            try {
+                const articles = await fetchNews(query, count, days);
+                renderResults(articles);
+            } catch (err) {
+                console.error(err);
+                els.results.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-red-300 glass-panel rounded-3xl border-dashed border-red-500/30">
+                        <i class="ri-error-warning-line text-5xl mb-4 opacity-50 inline-block text-red-400"></i>
+                        <p class="font-bold text-lg">뉴스를 가져오는 데 실패했습니다.</p>
+                        <p class="text-xs text-red-400/70 mt-2">잠시 후 다시 시도해주세요. (프록시 에러일 수 있습니다)</p>
+                    </div>`;
+            }
+        });
+
+        // --- 6. TTS (Text to Speech) ENGINE ---
+        function toggleTTS() {
+            if (globalArticles.length === 0) return;
+
+            if (isPlayingTTS) {
+                stopTTS();
+            } else {
+                playTTS();
+            }
+        }
+
+        function playTTS() {
+            synth.cancel(); // Clear any pending utterances
+            ttsUtterances = [];
+            
+            globalArticles.forEach((article, index) => {
+                const prefix = index === 0 ? "첫 번째 브리핑입니다. " : "다음 소식. ";
+                const textToRead = prefix + article.title;
+                
+                const utterance = new SpeechSynthesisUtterance(textToRead);
+                utterance.lang = 'ko-KR';
+                utterance.rate = 1.05; // Slightly faster for brief vibe
+                utterance.pitch = 1.0;
+                
+                if(index === globalArticles.length - 1) {
+                    utterance.onend = () => stopTTS();
+                }
+                
+                ttsUtterances.push(utterance);
+                synth.speak(utterance);
+            });
+            
+            isPlayingTTS = true;
+            updateTTSBtnState();
+        }
+
+        function stopTTS() {
+            synth.cancel();
+            isPlayingTTS = false;
+            updateTTSBtnState();
+        }
+
+        function updateTTSBtnState() {
+            if (isPlayingTTS) {
+                els.ttsBtn.innerHTML = `<i class="ri-stop-mini-fill text-2xl text-red-400"></i>`;
+                els.ttsBtn.classList.add('bg-white/10', 'border', 'border-red-500/20');
+                els.ttsBtn.classList.remove('text-indigo-400');
+            } else {
+                els.ttsBtn.innerHTML = `<i class="ri-volume-up-fill text-xl"></i>`;
+                els.ttsBtn.classList.remove('bg-white/10', 'border', 'border-red-500/20');
+                els.ttsBtn.classList.add('text-indigo-400');
+            }
+        }
+
+        els.ttsBtn.addEventListener('click', toggleTTS);
+
+        // --- 7. MAGICAL MOMENT (Summary & Share Modal) ---
+        function openModal() {
+            if(globalArticles.length === 0) return;
+
+            els.modal.classList.remove('pointer-events-none');
+            
+            // Build Context
+            const queryName = els.input.value;
+            els.modalTitle.textContent = queryName ? `'${queryName}' 브리핑` : "전체 브리핑";
+            
+            els.modalBody.innerHTML = globalArticles.map((a, i) => `
+                <div class="bg-slate-800/40 p-5 rounded-2xl border border-white/5 relative overflow-hidden group">
+                    <div class="absolute w-1 h-full bg-indigo-500 left-0 top-0 opacity-20 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="flex text-indigo-400 font-bold mb-2 items-center gap-2.5 pl-2">
+                        <span class="bg-indigo-500/20 w-6 h-6 flex items-center justify-center rounded-full text-[11px] ring-2 ring-indigo-500/10">${i+1}</span>
+                        <span class="text-xs text-slate-400 font-medium tracking-wide">${a.source}</span>
+                    </div>
+                    <p class="text-[15px] sm:text-[16px] text-slate-200 leading-relaxed font-semibold mt-1 pl-2">
+                        ${a.title}
+                    </p>
+                </div>
+            `).join('');
+
+            // Transition Execution (Allowing repaint via RequestAnimationFrame)
+            requestAnimationFrame(() => {
+                els.modalBackdrop.classList.remove('opacity-0');
+                els.modalContent.classList.remove('translate-y-full', 'sm:translate-y-12', 'sm:scale-95', 'opacity-0');
+                els.modalContent.classList.add('translate-y-0', 'sm:translate-y-0', 'sm:scale-100', 'opacity-100');
+            });
+        }
+
+        function closeModal() {
+            // Revert animation
+            els.modalBackdrop.classList.add('opacity-0');
+            els.modalContent.classList.remove('translate-y-0', 'sm:translate-y-0', 'sm:scale-100', 'opacity-100');
+            els.modalContent.classList.add('translate-y-full', 'sm:translate-y-12', 'sm:scale-95', 'opacity-0');
+            
+            // Wait for duration then hide completely
+            setTimeout(() => {
+                els.modal.classList.add('pointer-events-none');
+            }, 300);
+        }
+
+        els.fab.addEventListener('click', openModal);
+        els.closeModalBtn.addEventListener('click', closeModal);
+        els.modalBackdrop.addEventListener('click', closeModal);
+
+        // Share Action Handler
+        els.executeShareBtn.addEventListener('click', async () => {
+            const query = els.input.value || "실시간 뉴스";
+            const dateStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+            
+            let digestText = `✨ [${query}] 핵심 브리핑 (${dateStr}) ✨\n\n`;
+            
+            globalArticles.forEach((a, i) => {
+                digestText += `${i+1}. ${a.title}\n(${a.source})\n🔗 ${a.link}\n\n`;
+            });
+            
+            digestText += `✅ 실시간 브리핑 : Vibe News로 제공되었습니다.`;
+
+            // Support Web Share API logic
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: `${query} 브리핑`,
+                        text: digestText,
+                        // URL can't be added nicely when passing rich text in most mobile clients, so relying on text only
+                    });
+                } else {
+                    // Fallback to Clipboard
+                    await navigator.clipboard.writeText(digestText);
+                    alert("✅ 브리핑이 클립보드에 복사되었습니다! 카카오톡 대화방에 붙여넣기 해보세요.");
+                }
+            } catch (e) {
+                console.log("Share operation canceled or not supported.", e);
+            }
+        });
+
+        // Fire once at start
+        initKeywords();
+    </script>
+</body>
+</html>
