@@ -1,587 +1,413 @@
 <!DOCTYPE html>
-<html lang="ko" class="dark">
+<html lang="ko" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vibe News - 실시간 뉴스 요약 공유기</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>남양주시 화물자동차 공영차고지</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- Pretendard Font -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v3.2.1/dist/web/static/pretendard.min.css" />
-    
     <!-- Remix Icons -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Pretendard', 'sans-serif'],
                     },
                     colors: {
-                        glassBorder: 'rgba(255, 255, 255, 0.08)',
-                        glassBg: 'rgba(15, 23, 42, 0.45)',
+                        primary: '#1E3A8A', // Blue-900 for trustworthy tone
+                        secondary: '#3B82F6', // Blue-500
+                        accent: '#F59E0B', // Amber-500
                     }
                 }
             }
         }
     </script>
-    
+
     <style>
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: #020617; /* Slate 950 */
             -webkit-tap-highlight-color: transparent;
         }
-        
-        .glass-panel {
-            background: theme('colors.glassBg');
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid theme('colors.glassBorder');
+
+        /* Fade-in Animation Classes */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            will-change: opacity, visibility;
         }
-        
-        .glass-input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid theme('colors.glassBorder');
-            color: white;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .glass-input:focus {
-            outline: none;
-            border-color: rgba(99, 102, 241, 0.6); /* Indigo-500 proxy */
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-        
-        /* Custom Select Triangle Override */
-        select.glass-input {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-        
-        /* Scrollbar Hiding */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;  
-            scrollbar-width: none;  
-        }
-        
-        /* Shimmer Animation for Skeleton */
-        .shimmer {
-            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite linear;
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
         }
     </style>
 </head>
-<body class="relative min-h-screen text-slate-100 overflow-x-hidden selection:bg-indigo-500/30">
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-blue-200">
 
-    <!-- Ambient Glow Background -->
-    <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-        <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/15 blur-[120px] rounded-full"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-600/15 blur-[150px] rounded-full"></div>
-    </div>
-
-    <!-- Main Content -->
-    <main class="max-w-3xl mx-auto px-5 py-10 relative z-10 pb-32">
-        
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-10">
-            <div>
-                <h1 class="text-3xl font-extrabold tracking-tight">
-                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">Vibe News</span>
-                </h1>
-                <p class="text-sm text-slate-400 font-medium mt-1">AI-Ready 실시간 인사이트 콜렉터</p>
-            </div>
-            <button id="ttsBtn" class="w-12 h-12 rounded-full glass-panel flex flex-col items-center justify-center text-indigo-400 hover:text-indigo-300 transition-colors shadow-lg" title="헤드라인 음성으로 듣기">
-                <i class="ri-volume-up-fill text-xl"></i>
-            </button>
-        </header>
-
-        <!-- Search Bento Box -->
-        <section class="glass-panel rounded-3xl p-6 mb-10 shadow-2xl shadow-indigo-500/5">
-            <form id="searchForm" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div class="relative flex-1">
-                    <i class="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-                    <input type="text" id="searchInput" placeholder="어떤 주제를 탐색할까요?" required
-                        class="w-full glass-input rounded-2xl py-4 flex pl-12 pr-4 text-[15px] font-medium placeholder:text-slate-500">
+    <!-- Header / Navigation -->
+    <header class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="#" class="text-2xl font-bold text-primary flex items-center gap-2">
+                        <i class="ri-truck-line text-3xl text-secondary"></i>
+                        <span>남양주시 공영차고지</span>
+                    </a>
                 </div>
-                <button type="submit" class="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white rounded-2xl px-8 py-4 font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2">
-                    <span>탐색</span>
-                    <i class="ri-arrow-right-line"></i>
-                </button>
-            </form>
 
-            <div class="flex flex-col sm:flex-row gap-3 mt-4">
-                <!-- Filter Selectors -->
-                <div class="relative flex-1">
-                    <select id="periodFilter" class="w-full glass-input rounded-xl py-3 px-4 text-sm font-medium">
-                        <option value="1" class="bg-slate-900 text-white">어제부터 현재까지 (1일)</option>
-                        <option value="3" class="bg-slate-900 text-white">최근 3일간 핵심</option>
-                        <option value="7" class="bg-slate-900 text-white">최근 7일간 흐름</option>
-                    </select>
-                    <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg"></i>
-                </div>
-                <div class="relative flex-1">
-                    <select id="countFilter" class="w-full glass-input rounded-xl py-3 px-4 text-sm font-medium">
-                        <option value="5" class="bg-slate-900 text-white">밀도있게 5개 보기</option>
-                        <option value="10" selected class="bg-slate-900 text-white">표준으로 10개 보기</option>
-                        <option value="20" class="bg-slate-900 text-white">폭넓게 20개 보기</option>
-                    </select>
-                    <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg"></i>
-                </div>
-            </div>
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#about" class="text-slate-600 hover:text-secondary font-medium transition-colors">소개</a>
+                    <a href="#features" class="text-slate-600 hover:text-secondary font-medium transition-colors">시설안내</a>
+                    <a href="#pricing" class="text-slate-600 hover:text-secondary font-medium transition-colors">이용안내</a>
+                    <a href="#location" class="text-slate-600 hover:text-secondary font-medium transition-colors">오시는길</a>
+                </nav>
 
-            <!-- Quick Keywords List -->
-            <div class="mt-6 pt-5 border-t border-white/5">
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="ri-flashlight-fill text-yellow-500 text-sm"></i>
-                    <p class="text-[11px] text-slate-400 font-bold tracking-widest">QUICK TRENDS</p>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobileMenuBtn" class="text-slate-600 hover:text-primary focus:outline-none p-2 rounded-md">
+                        <i class="ri-menu-line text-2xl" id="menuIcon"></i>
+                    </button>
                 </div>
-                <div class="flex gap-2.5 overflow-x-auto no-scrollbar -mx-2 px-2 pb-1" id="keywordsContainer">
-                    <!-- Inserted by JS -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Results Display -->
-        <section>
-            <div class="flex justify-between items-center mb-5 px-1">
-                <h2 class="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
-                    라이브 피드
-                    <span id="resultCount" class="text-indigo-400 text-sm font-semibold px-2.5 py-0.5 rounded-lg bg-indigo-500/10 hidden">0</span>
-                </h2>
-            </div>
-            
-            <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Initial State -->
-                <div class="col-span-full py-16 text-center text-slate-500 glass-panel rounded-3xl border-dashed border-white/20 shadow-none">
-                    <i class="ri-meteor-line text-5xl mb-4 inline-block opacity-40"></i>
-                    <p class="font-medium">키워드를 입력해 세상의 흐름을 확인하세요.</p>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Floating Action Button (Share) -->
-    <button id="shareFab" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-full shadow-[0_0_40px_rgba(99,102,241,0.5)] flex items-center justify-center text-white text-[28px] hover:scale-110 active:scale-95 transition-all z-40 hidden group border border-white/10">
-        <i class="ri-share-forward-fill group-hover:animate-pulse"></i>
-    </button>
-
-    <!-- Summary Sheet Modal -->
-    <div id="summaryModal" class="fixed inset-0 z-50 flex justify-center items-end sm:items-center pointer-events-none">
-        
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md opacity-0 transition-opacity duration-300 ease-in-out" id="modalBackdrop"></div>
-        
-        <!-- Sheet / Modal Body -->
-        <div class="glass-panel border-b-0 sm:border-b border-white/10 w-full sm:w-[500px] sm:max-w-[95vw] sm:max-h-[85vh] h-[85vh] sm:h-auto rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col transform translate-y-full sm:translate-y-12 sm:scale-95 opacity-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] z-10" id="modalContent">
-            
-            <!-- Mobile Handle -->
-            <div class="w-full flex justify-center pt-4 pb-2 bg-transparent sm:hidden shrink-0" id="modalHandle">
-                <div class="w-14 h-1.5 bg-white/20 rounded-full"></div>
-            </div>
-            
-            <!-- Modal Header -->
-            <div class="px-6 py-4 sm:py-6 border-b border-white/5 flex justify-between items-center shrink-0">
-                <div>
-                    <span class="text-xs font-bold text-indigo-400 tracking-wider mb-1 block">SUMMARY REPORT</span>
-                    <h3 class="text-xl sm:text-2xl font-extrabold text-slate-100" id="modalTitle">브리핑 요약</h3>
-                </div>
-                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 flex flex-col items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer touch-manipulation">
-                    <i class="ri-close-line text-2xl"></i>
-                </button>
-            </div>
-            
-            <!-- Modal Scrollable Content -->
-            <div class="flex-1 overflow-y-auto px-6 py-6 space-y-4 no-scrollbar" id="modalBody" style="-webkit-overflow-scrolling: touch;">
-                <!-- Filled via JS -->
-            </div>
-            
-            <!-- Modal Action Footer -->
-            <div class="p-6 pt-5 border-t border-white/5 shrink-0 bg-slate-900/60 sm:rounded-b-3xl">
-                <button id="executeShareBtn" class="w-full bg-[#fae100] hover:bg-[#ebce00] text-[#371d1e] rounded-2xl py-4 font-extrabold text-base transition-all active:scale-[98%] flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10 cursor-pointer touch-manipulation">
-                    <i class="ri-kakao-talk-fill text-xl"></i>
-                    <span>요약된 브리핑 공유하기</span>
-                </button>
             </div>
         </div>
-    </div>
 
-    <!-- Scripts -->
-    <script>
-        // --- 1. CONFIG & STATE ---
-        // 다중 프록시 폴백(Fallback) 구조 도입으로 안정성 극대화
-        const PROXY_LIST = [
-            { url: "https://api.allorigins.win/get?url=", type: "json" },
-            { url: "https://corsproxy.io/?", type: "text" },
-            { url: "https://api.codetabs.com/v1/proxy/?quest=", type: "text" }
-        ];
-        const QUICK_KEYWORDS = [
-            "남양주시", "남양주시 교통", "남양주시 철도", "남양주시 화물", 
-            "인공지능", "부동산 정책", "미국 증시", "금리 인하"
-        ];
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-100 shadow-lg absolute w-full">
+            <div class="px-4 pt-2 pb-6 space-y-1">
+                <a href="#about" class="block px-3 py-3 rounded-md text-base font-medium text-slate-700 hover:text-secondary hover:bg-slate-50 transition-colors mobile-link">소개</a>
+                <a href="#features" class="block px-3 py-3 rounded-md text-base font-medium text-slate-700 hover:text-secondary hover:bg-slate-50 transition-colors mobile-link">시설안내</a>
+                <a href="#pricing" class="block px-3 py-3 rounded-md text-base font-medium text-slate-700 hover:text-secondary hover:bg-slate-50 transition-colors mobile-link">이용안내</a>
+                <a href="#location" class="block px-3 py-3 rounded-md text-base font-medium text-slate-700 hover:text-secondary hover:bg-slate-50 transition-colors mobile-link">오시는길</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <!-- 이미지 수정을 원하시면 style="background-image: url('...');" 부분을 변경하세요 -->
+    <section id="about" class="relative pt-20 flex items-center justify-center min-h-[90vh] bg-slate-900 overflow-hidden">
+        <!-- Background Overlay / Gradient -->
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/90 to-slate-900/80 z-10"></div>
+        <!-- Background Placeholder (Can be replaced with an actual image) -->
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
         
-        let globalArticles = [];
-        let isPlayingTTS = false;
-        let ttsUtterances = [];
-        const synth = window.speechSynthesis;
-
-        // --- 2. DOM ELEMENTS ---
-        const els = {
-            form: document.getElementById('searchForm'),
-            input: document.getElementById('searchInput'),
-            period: document.getElementById('periodFilter'),
-            count: document.getElementById('countFilter'),
-            keywords: document.getElementById('keywordsContainer'),
-            results: document.getElementById('resultsContainer'),
-            countLabel: document.getElementById('resultCount'),
-            ttsBtn: document.getElementById('ttsBtn'),
-            fab: document.getElementById('shareFab'),
+        <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white fade-in-section">
+            <span class="inline-block py-1 px-3 rounded-full bg-secondary/20 border border-secondary/30 text-secondary-100 text-sm font-semibold tracking-wider mb-6">
+                남양주시 공식 지정 차고지
+            </span>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+                남양주시 화물자동차 공영차고지,<br class="hidden sm:block" />
+                <span class="text-blue-300">편안한 휴식과 안전한 주차의 시작</span>
+            </h1>
+            <p class="mt-4 text-lg md:text-xl text-slate-200 max-w-3xl mx-auto font-light mb-10">
+                화물차 운전자분들의 든든한 파트너가 되겠습니다.<br class="hidden sm:block" />
+                넓은 주차 공간과 최신식 휴게 시설로 최적의 환경을 제공합니다.
+            </p>
             
-            // Modal Elements
-            modal: document.getElementById('summaryModal'),
-            modalBackdrop: document.getElementById('modalBackdrop'),
-            modalContent: document.getElementById('modalContent'),
-            closeModalBtn: document.getElementById('closeModalBtn'),
-            modalTitle: document.getElementById('modalTitle'),
-            modalBody: document.getElementById('modalBody'),
-            executeShareBtn: document.getElementById('executeShareBtn')
-        };
-
-        // --- 3. INITIALIZATION ---
-        function initKeywords() {
-            els.keywords.innerHTML = QUICK_KEYWORDS.map(kw => `
-                <button type="button" class="shrink-0 glass-panel hover:bg-white/10 hover:border-white/20 border-white/5 text-slate-300 hover:text-white px-4 py-2 rounded-xl text-[13px] font-medium transition-all"
-                    onclick="doQuickSearch('${kw}')">
-                    ${kw}
-                </button>
-            `).join('');
-        }
-
-        window.doQuickSearch = (kw) => {
-            els.input.value = kw;
-            els.form.dispatchEvent(new Event('submit'));
-        };
-
-        // Utility: Date formatter 
-        function formatTimeAgo(date) {
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-
-            if (diffMins < 60) return `${diffMins || 1}분 전`;
-            if (diffHours < 24) return `${diffHours}시간 전`;
-            return `${diffDays}일 전`;
-        }
-
-        // --- 4. DATA ENGINE (RSS FETCH) ---
-        async function fetchNews(query, count, days) {
-            // 캐시 우회를 위한 타임스탬프 추가
-            const timestamp = new Date().getTime();
-            const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko&_cb=${timestamp}`;
-            
-            let xmlText = null;
-            let lastError = null;
-
-            // 다중 프록시 순차 시도 (하나가 막히면 다음 프록시로 자동 우회)
-            for (const proxy of PROXY_LIST) {
-                try {
-                    const response = await fetch(`${proxy.url}${encodeURIComponent(rssUrl)}`);
-                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                    
-                    if (proxy.type === "json") {
-                        const data = await response.json();
-                        if (data.contents) xmlText = data.contents;
-                        else throw new Error("Empty JSON contents");
-                    } else {
-                        xmlText = await response.text();
-                    }
-                    
-                    if (xmlText && xmlText.includes('<item>')) {
-                        break; // 성공 시 루프 탈출
-                    } else {
-                        throw new Error("Invalid XML structure");
-                    }
-                } catch (err) {
-                    console.warn(`[Proxy Fail] ${proxy.url} :`, err.message);
-                    lastError = err;
-                    xmlText = null;
-                }
-            }
-
-            if (!xmlText) {
-                throw new Error("모든 프록시 서버 접근에 실패했습니다.");
-            }
-            
-            // Parse XML Document
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            
-            const items = Array.from(xmlDoc.querySelectorAll("item"));
-            const cutoff = new Date(new Date().getTime() - (days * 24 * 60 * 60 * 1000));
-            
-            let articles = items.map(item => {
-                let rawTitle = item.querySelector("title")?.textContent || "제목 없음";
-                const parts = rawTitle.split(" - ");
-                let source = item.querySelector("source")?.textContent;
-                
-                // If source not found explicitly, fallback to the suffix usually found in title
-                if(!source && parts.length > 1) {
-                    source = parts.pop();
-                }
-                const title = parts.join(" - ") || rawTitle;
-                
-                return {
-                    title: title.trim(),
-                    link: item.querySelector("link")?.textContent || "",
-                    pubDate: item.querySelector("pubDate") ? new Date(item.querySelector("pubDate").textContent) : new Date(),
-                    source: source || "Google News"
-                };
-            });
-            
-            // Filter by selected period and sort exactly by time desc
-            articles = articles.filter(a => a.pubDate >= cutoff);
-            articles.sort((a, b) => b.pubDate - a.pubDate);
-            return articles.slice(0, count);
-        }
-
-        // --- 5. RENDER FUNCTIONS ---
-        function showSkeletons(count) {
-            els.results.innerHTML = Array(count).fill(0).map(() => `
-                <div class="glass-panel border-white/5 rounded-3xl p-6 flex flex-col gap-4 shadow-sm">
-                    <div class="shimmer h-6 w-1/4 rounded-lg bg-white/5 mb-1"></div>
-                    <div class="space-y-3">
-                        <div class="shimmer h-5 w-full rounded-md bg-white/5"></div>
-                        <div class="shimmer h-5 w-5/6 rounded-md bg-white/5"></div>
-                    </div>
-                </div>
-            `).join('');
-            els.countLabel.classList.add('hidden');
-            els.fab.classList.add('hidden');
-        }
-
-        function renderResults(articles) {
-            globalArticles = articles;
-            
-            if(articles.length === 0) {
-                els.results.innerHTML = `
-                    <div class="col-span-full py-16 text-center text-slate-400 glass-panel rounded-3xl border-dashed border-white/10">
-                        <i class="ri-search-eye-line text-5xl mb-4 opacity-30 inline-block"></i>
-                        <p class="font-medium text-lg text-slate-300">검색 결과가 없습니다.</p>
-                        <p class="text-xs text-slate-500 mt-2">다른 키워드나 기간을 선택해보세요.</p>
-                    </div>`;
-                els.countLabel.classList.add('hidden');
-                els.fab.classList.add('hidden');
-                stopTTS();
-                return;
-            }
-
-            // Update Header Counts
-            els.countLabel.textContent = `${articles.length}건`;
-            els.countLabel.classList.remove('hidden');
-            els.fab.classList.remove('hidden');
-
-            els.results.innerHTML = articles.map((a, i) => `
-                <a href="${a.link}" target="_blank" rel="noopener noreferrer" 
-                   class="group glass-panel rounded-3xl p-6 flex flex-col justify-between hover:bg-white/10 transition-all duration-300 border border-transparent hover:border-indigo-400/30 hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                    <!-- Glow effect on hover -->
-                    <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/0 via-transparent to-purple-500/0 group-hover:from-indigo-500/5 group-hover:to-purple-500/5 transition-colors"></div>
-                    
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-4">
-                            <span class="text-xs font-bold text-indigo-300 bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-400/20">
-                                ${a.source}
-                            </span>
-                            <span class="text-[11px] font-medium text-slate-400 tracking-wide">${formatTimeAgo(a.pubDate)}</span>
-                        </div>
-                        <h3 class="text-base sm:text-[17px] font-bold leading-relaxed text-slate-100 group-hover:text-indigo-200 transition-colors line-clamp-3">
-                            ${a.title}
-                        </h3>
-                    </div>
+            <!-- Call to Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#pricing" class="inline-flex justify-center items-center px-8 py-4 border border-transparent text-base font-bold rounded-lg text-white bg-secondary hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-1">
+                    이용 안내 보기
                 </a>
-            `).join('');
-        }
+                <a href="#location" class="inline-flex justify-center items-center px-8 py-4 border border-white/30 text-base font-bold rounded-lg text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all transform hover:-translate-y-1">
+                    위치 확인하기
+                </a>
+            </div>
+        </div>
+    </section>
 
-        // Event: Search Submit
-        els.form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const query = els.input.value.trim();
-            if(!query) return;
+    <!-- Features / 시설 안내 Section -->
+    <section id="features" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 fade-in-section">
+                <h2 class="text-base text-secondary font-semibold tracking-wide uppercase">시설안내</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+                    안전하고 쾌적한 최신식 시설
+                </p>
+                <p class="mt-4 max-w-2xl text-lg text-slate-500 mx-auto">
+                    운전자분들의 피로를 덜어드리기 위해 최고 수준의 주차 및 휴게 환경을 조성했습니다.
+                </p>
+            </div>
 
-            const count = parseInt(els.count.value, 10);
-            const days = parseInt(els.period.value, 10);
-            
-            stopTTS();
-            showSkeletons(Math.min(count, 4)); // Show fewer skeletons nicely
-
-            try {
-                const articles = await fetchNews(query, count, days);
-                renderResults(articles);
-            } catch (err) {
-                console.error(err);
-                els.results.innerHTML = `
-                    <div class="col-span-full py-16 text-center text-red-300 glass-panel rounded-3xl border-dashed border-red-500/30">
-                        <i class="ri-error-warning-line text-5xl mb-4 opacity-50 inline-block text-red-400"></i>
-                        <p class="font-bold text-lg">뉴스를 가져오는 데 실패했습니다.</p>
-                        <p class="text-xs text-red-400/70 mt-2">잠시 후 다시 시도해주세요. (프록시 에러일 수 있습니다)</p>
-                    </div>`;
-            }
-        });
-
-        // --- 6. TTS (Text to Speech) ENGINE ---
-        function toggleTTS() {
-            if (globalArticles.length === 0) return;
-
-            if (isPlayingTTS) {
-                stopTTS();
-            } else {
-                playTTS();
-            }
-        }
-
-        function playTTS() {
-            synth.cancel(); // Clear any pending utterances
-            ttsUtterances = [];
-            
-            globalArticles.forEach((article, index) => {
-                const prefix = index === 0 ? "첫 번째 브리핑입니다. " : "다음 소식. ";
-                const textToRead = prefix + article.title;
-                
-                const utterance = new SpeechSynthesisUtterance(textToRead);
-                utterance.lang = 'ko-KR';
-                utterance.rate = 1.05; // Slightly faster for brief vibe
-                utterance.pitch = 1.0;
-                
-                if(index === globalArticles.length - 1) {
-                    utterance.onend = () => stopTTS();
-                }
-                
-                ttsUtterances.push(utterance);
-                synth.speak(utterance);
-            });
-            
-            isPlayingTTS = true;
-            updateTTSBtnState();
-        }
-
-        function stopTTS() {
-            synth.cancel();
-            isPlayingTTS = false;
-            updateTTSBtnState();
-        }
-
-        function updateTTSBtnState() {
-            if (isPlayingTTS) {
-                els.ttsBtn.innerHTML = `<i class="ri-stop-mini-fill text-2xl text-red-400"></i>`;
-                els.ttsBtn.classList.add('bg-white/10', 'border', 'border-red-500/20');
-                els.ttsBtn.classList.remove('text-indigo-400');
-            } else {
-                els.ttsBtn.innerHTML = `<i class="ri-volume-up-fill text-xl"></i>`;
-                els.ttsBtn.classList.remove('bg-white/10', 'border', 'border-red-500/20');
-                els.ttsBtn.classList.add('text-indigo-400');
-            }
-        }
-
-        els.ttsBtn.addEventListener('click', toggleTTS);
-
-        // --- 7. MAGICAL MOMENT (Summary & Share Modal) ---
-        function openModal() {
-            if(globalArticles.length === 0) return;
-
-            els.modal.classList.remove('pointer-events-none');
-            
-            // Build Context
-            const queryName = els.input.value;
-            els.modalTitle.textContent = queryName ? `'${queryName}' 브리핑` : "전체 브리핑";
-            
-            els.modalBody.innerHTML = globalArticles.map((a, i) => `
-                <div class="bg-slate-800/40 p-5 rounded-2xl border border-white/5 relative overflow-hidden group">
-                    <div class="absolute w-1 h-full bg-indigo-500 left-0 top-0 opacity-20 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="flex text-indigo-400 font-bold mb-2 items-center gap-2.5 pl-2">
-                        <span class="bg-indigo-500/20 w-6 h-6 flex items-center justify-center rounded-full text-[11px] ring-2 ring-indigo-500/10">${i+1}</span>
-                        <span class="text-xs text-slate-400 font-medium tracking-wide">${a.source}</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-md transition-shadow fade-in-section">
+                    <div class="w-14 h-14 inline-flex items-center justify-center rounded-xl bg-blue-100 text-secondary mb-6">
+                        <i class="ri-parking-box-line text-3xl"></i>
                     </div>
-                    <p class="text-[15px] sm:text-[16px] text-slate-200 leading-relaxed font-semibold mt-1 pl-2">
-                        ${a.title}
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">넓고 쾌적한 주차 공간</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        대형 화물차량도 여유롭게 주차할 수 있는 넉넉한 주차 규격과 편리한 진출입로를 갖추고 있습니다.
                     </p>
                 </div>
-            `).join('');
 
-            // Transition Execution (Allowing repaint via RequestAnimationFrame)
-            requestAnimationFrame(() => {
-                els.modalBackdrop.classList.remove('opacity-0');
-                els.modalContent.classList.remove('translate-y-full', 'sm:translate-y-12', 'sm:scale-95', 'opacity-0');
-                els.modalContent.classList.add('translate-y-0', 'sm:translate-y-0', 'sm:scale-100', 'opacity-100');
-            });
-        }
+                <!-- Feature 2 -->
+                <div class="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-md transition-shadow fade-in-section" style="transition-delay: 100ms;">
+                    <div class="w-14 h-14 inline-flex items-center justify-center rounded-xl bg-blue-100 text-secondary mb-6">
+                        <i class="ri-shield-check-line text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">24시간 안전한 보안</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        고화질 CCTV 완비 및 24시간 철저한 보안 시스템을 통해 화물차량과 적재물을 안전하게 보호합니다.
+                    </p>
+                </div>
 
-        function closeModal() {
-            // Revert animation
-            els.modalBackdrop.classList.add('opacity-0');
-            els.modalContent.classList.remove('translate-y-0', 'sm:translate-y-0', 'sm:scale-100', 'opacity-100');
-            els.modalContent.classList.add('translate-y-full', 'sm:translate-y-12', 'sm:scale-95', 'opacity-0');
-            
-            // Wait for duration then hide completely
-            setTimeout(() => {
-                els.modal.classList.add('pointer-events-none');
-            }, 300);
-        }
+                <!-- Feature 3 -->
+                <div class="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-md transition-shadow fade-in-section" style="transition-delay: 200ms;">
+                    <div class="w-14 h-14 inline-flex items-center justify-center rounded-xl bg-blue-100 text-secondary mb-6">
+                        <i class="ri-hotel-bed-line text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">최신식 휴게 시설</h3>
+                    <p class="text-slate-600 leading-relaxed">
+                        장거리 운전의 피로를 풀 수 있는 수면실, 샤워실, 체력단련실 등 편안한 휴식 공간을 제공합니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        els.fab.addEventListener('click', openModal);
-        els.closeModalBtn.addEventListener('click', closeModal);
-        els.modalBackdrop.addEventListener('click', closeModal);
+    <!-- Usage & Pricing / 이용 안내 Section -->
+    <section id="pricing" class="py-24 bg-slate-50 border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 fade-in-section">
+                <h2 class="text-base text-secondary font-semibold tracking-wide uppercase">이용안내</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+                    합리적인 요금과 간편한 신청
+                </p>
+                <p class="mt-4 max-w-2xl text-lg text-slate-500 mx-auto">
+                    남양주시 관내/관외 화물차 운전자 누구나 투명하고 합리적인 요금으로 이용할 수 있습니다.
+                </p>
+            </div>
 
-        // Share Action Handler
-        els.executeShareBtn.addEventListener('click', async () => {
-            const query = els.input.value || "실시간 뉴스";
-            const dateStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
-            
-            let digestText = `✨ [${query}] 핵심 브리핑 (${dateStr}) ✨\n\n`;
-            
-            globalArticles.forEach((a, i) => {
-                digestText += `${i+1}. ${a.title}\n(${a.source})\n🔗 ${a.link}\n\n`;
-            });
-            
-            digestText += `✅ 실시간 브리핑 : Vibe News로 제공되었습니다.`;
+            <!-- Info Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 fade-in-section">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-start gap-4">
+                    <i class="ri-user-star-line text-2xl text-secondary mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-slate-900 mb-1">이용 대상</h4>
+                        <p class="text-slate-600 text-sm">남양주시 관내 및 관외 거주 화물자동차 운송사업자 (1.5톤 이상 화물차 우선)</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-start gap-4">
+                    <i class="ri-file-edit-line text-2xl text-secondary mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-slate-900 mb-1">신청 방법</h4>
+                        <p class="text-slate-600 text-sm">홈페이지 사전 예약 또는 관리사무소 현장 방문 접수 (신분증 및 차량등록증 지참)</p>
+                    </div>
+                </div>
+            </div>
 
-            // Support Web Share API logic
-            try {
-                if (navigator.share) {
-                    await navigator.share({
-                        title: `${query} 브리핑`,
-                        text: digestText,
-                        // URL can't be added nicely when passing rich text in most mobile clients, so relying on text only
-                    });
+            <!-- Pricing Table -->
+            <div class="bg-white shadow-md rounded-2xl overflow-hidden border border-slate-200 fade-in-section">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-center">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-wider">구분</th>
+                                <th scope="col" class="px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-wider">대상 차량</th>
+                                <th scope="col" class="px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-wider">월 정기권</th>
+                                <th scope="col" class="px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-wider">일일 주차 (1일)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">
+                            <!-- 요금 정보 수정 영역 -->
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-5 whitespace-nowrap text-sm font-bold text-slate-900" rowspan="2">관내 거주자</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-slate-600">1.5톤 이상 ~ 5톤 미만</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-primary font-bold">50,000원</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-slate-600">5,000원</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-slate-600 border-l border-slate-200">5톤 이상 대형</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-primary font-bold">70,000원</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-slate-600">7,000원</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-5 whitespace-nowrap text-sm font-bold text-slate-900" rowspan="2">관외 거주자</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-slate-600 border-l border-slate-200">1.5톤 이상 ~ 5톤 미만</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-primary font-bold">70,000원</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-slate-600">7,000원</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-slate-600 border-l border-slate-200">5톤 이상 대형</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-primary font-bold">100,000원</td>
+                                <td class="px-6 py-5 whitespace-nowrap text-sm text-slate-600">10,000원</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-slate-50 px-6 py-4 text-xs text-slate-500 border-t border-slate-200 text-right">
+                    * 위 요금표는 예시이며, 실제 요금은 관련 조례에 따라 변경될 수 있습니다. (부가세 포함)
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location / 오시는 길 Section -->
+    <section id="location" class="py-24 bg-white border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 fade-in-section">
+                <h2 class="text-base text-secondary font-semibold tracking-wide uppercase">오시는길</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+                    어디서든 빠르고 편리한 접근성
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <!-- Map Placeholder -->
+                <div class="bg-slate-200 rounded-2xl h-[400px] lg:h-full min-h-[400px] flex items-center justify-center relative overflow-hidden border border-slate-300 shadow-inner fade-in-section">
+                    <!-- 실제 카카오맵/네이버지도 API 삽입 위치 -->
+                    <div class="text-center text-slate-500 p-6 z-10 bg-white/80 backdrop-blur-sm rounded-xl">
+                        <i class="ri-map-pin-line text-4xl mb-2 text-slate-400"></i>
+                        <p class="font-medium">지도 API 삽입 영역 (Placeholder)</p>
+                        <p class="text-sm mt-1">이곳에 카카오맵 또는 네이버 지도를 연결하세요.</p>
+                    </div>
+                </div>
+
+                <!-- Contact & Directions Info -->
+                <div class="flex flex-col justify-center space-y-8 fade-in-section" style="transition-delay: 100ms;">
+                    <!-- 주소 정보 (수정 가능) -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-secondary">
+                                <i class="ri-map-pin-user-fill text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900">차고지 주소</h3>
+                        </div>
+                        <p class="text-slate-600 pl-13 ml-13 text-lg">경기도 남양주시 OO구 OO동 123-45 (공영차고지 부지)</p>
+                    </div>
+
+                    <!-- 연락처 정보 (수정 가능) -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-secondary">
+                                <i class="ri-phone-fill text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900">관리사무소 연락처</h3>
+                        </div>
+                        <p class="text-slate-600 ml-13 text-lg font-medium tracking-wide">031-590-XXXX</p>
+                        <p class="text-slate-500 ml-13 text-sm mt-1">운영시간: 평일 09:00 ~ 18:00</p>
+                    </div>
+
+                    <!-- 접근성 안내 (수정 가능) -->
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                            <i class="ri-car-line text-secondary"></i> 주요 도로 접근성
+                        </h4>
+                        <ul class="space-y-2 text-slate-600 text-sm">
+                            <li class="flex gap-2"><i class="ri-check-line text-green-500 mt-0.5"></i> <span><strong>수도권제1순환고속도로:</strong> 남양주IC에서 차량으로 약 10분 소요</span></li>
+                            <li class="flex gap-2"><i class="ri-check-line text-green-500 mt-0.5"></i> <span><strong>서울양양고속도로:</strong> 덕소삼패IC에서 차량으로 약 15분 소요</span></li>
+                            <li class="flex gap-2"><i class="ri-check-line text-green-500 mt-0.5"></i> <span>외곽 주요 국도와 직접 연결되어 대형 차량 진출입이 매우 용이합니다.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center md:items-start gap-6">
+
+                <!-- Logo & Dept -->
+                <div class="text-center md:text-left">
+                    <a href="#" class="text-2xl font-extrabold text-white mb-2 inline-block">남양주시</a>
+                    <p class="text-sm text-slate-500">대중교통과 화물운송지원팀</p>
+                </div>
+
+                <!-- Policy Links -->
+                <div class="flex flex-wrap justify-center gap-6 text-sm font-medium">
+                    <a href="#" class="hover:text-white transition-colors">이용약관</a>
+                    <a href="#" class="text-slate-200 hover:text-white transition-colors">개인정보처리방침</a>
+                    <a href="#" class="hover:text-white transition-colors">이메일무단수집거부</a>
+                    <a href="#" class="hover:text-white transition-colors">오시는길</a>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+                <p>
+                    (12215) 경기도 남양주시 다산중앙로82번안길 137 (다산동) 남양주시청
+                </p>
+                <p class="text-slate-500">
+                    &copy; Namyangju City. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Interactivity -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Mobile Menu Toggle
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuIcon = document.getElementById('menuIcon');
+            const mobileLinks = document.querySelectorAll('.mobile-link');
+
+            function toggleMenu() {
+                mobileMenu.classList.toggle('hidden');
+                if (mobileMenu.classList.contains('hidden')) {
+                    menuIcon.classList.remove('ri-close-line');
+                    menuIcon.classList.add('ri-menu-line');
                 } else {
-                    // Fallback to Clipboard
-                    await navigator.clipboard.writeText(digestText);
-                    alert("✅ 브리핑이 클립보드에 복사되었습니다! 카카오톡 대화방에 붙여넣기 해보세요.");
+                    menuIcon.classList.remove('ri-menu-line');
+                    menuIcon.classList.add('ri-close-line');
                 }
-            } catch (e) {
-                console.log("Share operation canceled or not supported.", e);
             }
-        });
 
-        // Fire once at start
-        initKeywords();
+            mobileMenuBtn.addEventListener('click', toggleMenu);
+
+            // Close mobile menu when a link is clicked
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+            // 2. Navbar Background on Scroll
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 20) {
+                    navbar.classList.add('shadow-md');
+                    navbar.classList.replace('bg-white/90', 'bg-white');
+                } else {
+                    navbar.classList.remove('shadow-md');
+                    navbar.classList.replace('bg-white', 'bg-white/90');
+                }
+            });
+
+            // 3. Scroll Fade-in Animation using Intersection Observer
+            const fadeElements = document.querySelectorAll('.fade-in-section');
+            
+            const appearOptions = {
+                threshold: 0.15,
+                rootMargin: "0px 0px -50px 0px"
+            };
+
+            const appearOnScroll = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    } else {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, appearOptions);
+
+            fadeElements.forEach(el => {
+                appearOnScroll.observe(el);
+            });
+        });
     </script>
 </body>
 </html>
